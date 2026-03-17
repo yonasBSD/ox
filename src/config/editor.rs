@@ -6,9 +6,9 @@ use crate::editor::{Editor, FileContainer, FileLayout};
 #[cfg(not(target_os = "windows"))]
 use crate::pty::Pty;
 use crate::ui::Feedback;
-use crate::{config, fatal_error, PLUGIN_BOOTSTRAP, PLUGIN_MANAGER, PLUGIN_NETWORKING, PLUGIN_RUN};
-use kaolinite::utils::{get_absolute_path, get_cwd, get_file_ext, get_file_name};
+use crate::{PLUGIN_BOOTSTRAP, PLUGIN_MANAGER, PLUGIN_NETWORKING, PLUGIN_RUN, config, fatal_error};
 use kaolinite::Loc;
+use kaolinite::utils::{get_absolute_path, get_cwd, get_file_ext, get_file_name};
 use mlua::prelude::*;
 #[cfg(not(target_os = "windows"))]
 use std::collections::HashMap;

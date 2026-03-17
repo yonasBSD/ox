@@ -1,5 +1,5 @@
 /// Functions for moving the cursor around
-use crate::{config, ged, handle_event, CEvent, Loc, Result};
+use crate::{CEvent, Loc, Result, config, ged, handle_event};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use kaolinite::event::Status;
 use mlua::{AnyUserData, Lua};
@@ -243,7 +243,7 @@ fn adjust_other_cursors(
 
 // Determine whether an event should be acted on by the multi cursor
 #[allow(clippy::module_name_repetitions)]
-pub fn allowed_by_multi_cursor(event: &CEvent) -> bool {
+pub const fn allowed_by_multi_cursor(event: &CEvent) -> bool {
     matches!(
         event,
         CEvent::Key(

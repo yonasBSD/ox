@@ -3,7 +3,7 @@
 use mio::unix::SourceFd;
 use mio::{Events, Interest, Poll, Token};
 use mlua::prelude::*;
-use nix::fcntl::{fcntl, FcntlArg, OFlag};
+use nix::fcntl::{FcntlArg, OFlag, fcntl};
 use ptyprocess::PtyProcess;
 use std::io::{BufReader, Read, Result, Write};
 use std::os::unix::io::AsRawFd;
@@ -29,15 +29,15 @@ pub enum Shell {
 }
 
 impl Shell {
-    pub fn manual_input_echo(self) -> bool {
+    pub const fn manual_input_echo(self) -> bool {
         matches!(self, Self::Bash | Self::Dash)
     }
 
-    pub fn inserts_extra_newline(self) -> bool {
+    pub const fn inserts_extra_newline(self) -> bool {
         !matches!(self, Self::Zsh)
     }
 
-    pub fn command(&self) -> &str {
+    pub const fn command(&self) -> &str {
         match self {
             Self::Bash => "bash",
             Self::Dash => "dash",
@@ -87,11 +87,13 @@ impl Pty {
         pty.lock().unwrap().run_command("")?;
         // Spawn thread to constantly read from the terminal
         let pty_clone = Arc::clone(&pty);
-        std::thread::spawn(move || loop {
-            std::thread::sleep(std::time::Duration::from_millis(100));
-            let mut pty = pty_clone.lock().unwrap();
-            pty.force_rerender = matches!(pty.catch_up(), Ok(true));
-            std::mem::drop(pty);
+        std::thread::spawn(move || {
+            loop {
+                std::thread::sleep(std::time::Duration::from_millis(100));
+                let mut pty = pty_clone.lock().unwrap();
+                pty.force_rerender = matches!(pty.catch_up(), Ok(true));
+                std::mem::drop(pty);
+            }
         });
         // Return the pty
         Ok(pty)
@@ -133,7 +135,7 @@ impl Pty {
         self.input.push(c);
         if c == '\n' {
             // Return key pressed, send the input
-            self.run_command(&self.input.to_string())?;
+            self.run_command(&self.input.clone())?;
             self.input.clear();
         }
         Ok(())

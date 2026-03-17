@@ -1,0 +1,51 @@
+[alias]
+xtask = "run --package xtask --"
+t = "test --all -- --nocapture"
+t-all = "cargo t-native && cargo t-wasm"
+t-native = "test --all -- --nocapture"
+t-wasm = "test --target wasm32-unknown-unknown -- --nocapture"
+b = "build --workspace"
+b-all = "cargo b-native && cargo b-wasm"
+b-native = "build --workspace"
+b-wasm = "build --workspace --target wasm32-unknown-unknown"
+r = "run --release"
+r-all = "cargo r-native && cargo r-wasm"
+r-native = "run --relase"
+r-wasm = "run --relase --target wasm32-unknown-unknown"
+format = "fmt --all"
+cl = "clippy --all-targets --all-features -- -Dwarnings"
+
+[build]
+rustflags = [
+  "-Dwarnings",             # Denies all lints that are currently set to "warn" level.
+  "-Dunsafe-code",          # Prevents the use of any unsafe blocks.
+  "-Dmissing-docs",         # Ensures all public items have documentation.
+  "-Ddeprecated",           # Treats the use of deprecated items as errors.
+  "-Doverflowing-literals", # Denies literal values that are too big for their type.
+]
+
+[target.wasm32-unknown-unknown]
+runner = "wasm-bindgen-test-runner"
+
+[profile.dev]
+opt-level = 1
+incremental = true
+
+[profile.release]
+opt-level = "z"     # Optimize for size
+lto = true          # Link Time Optimization
+codegen-units = 1   # Maximum optimization for binary speed
+panic = "abort"     # Minimize binary overhead
+strip = true        # Remove symbols for deployment
+
+[env]
+RUST_TEST_THREADS = "1"
+RUST_BACKTRACE = "1"
+
+[target.'cfg(all())']
+rustflags = [
+    "-Wclippy::all",
+    "-Wclippy::pedantic",
+    "-Wclippy::nursery",
+    "-Wclippy::cargo",
+]

@@ -1,10 +1,10 @@
 /// Tools for managing and identifying file types
 use crate::config;
 use crate::editor::Config;
-use kaolinite::utils::get_file_name;
 use kaolinite::Document;
+use kaolinite::utils::get_file_name;
 use std::path::Path;
-use synoptic::{from_extension, Highlighter, Regex};
+use synoptic::{Highlighter, Regex, from_extension};
 
 /// A struct to store different file types and provide utilities for finding the correct one
 #[derive(Default, Debug, Clone)]
@@ -70,7 +70,7 @@ pub struct FileType {
 
 impl Default for FileType {
     fn default() -> Self {
-        FileType {
+        Self {
             name: "Unknown".to_string(),
             icon: "󰈙 ".to_string(),
             files: vec![],

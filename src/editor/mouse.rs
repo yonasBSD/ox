@@ -1,8 +1,8 @@
 use crate::editor::FileLayout;
 /// For handling mouse events
-use crate::{config, Result};
+use crate::{Result, config};
 use crossterm::event::{KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
-use kaolinite::{utils::width, Loc};
+use kaolinite::{Loc, utils::width};
 use mlua::Lua;
 use std::time::{Duration, Instant};
 
@@ -138,7 +138,7 @@ impl Editor {
                             if let Some(ft) = &self.file_tree {
                                 // Move selection to where we clicked
                                 if let Some(item) = ft.flatten().get(y) {
-                                    self.file_tree_selection = Some(item.to_string());
+                                    self.file_tree_selection = Some(item.clone());
                                     // Toggle the node
                                     self.file_tree_open_node()?;
                                 }
@@ -287,16 +287,14 @@ impl Editor {
                 _ => (),
             },
             // Multi cursor behaviour
-            KeyModifiers::CONTROL => {
-                if let MouseEventKind::Down(MouseButton::Left) = event.kind {
-                    if let MouseLocation::File(idx, loc) = self.find_mouse_location(lua, event) {
-                        self.cache_old_ptr(&idx);
-                        self.ptr.clone_from(&idx);
-                        self.update_cwd();
-                        if let Some(doc) = self.try_doc_mut() {
-                            doc.new_cursor(loc);
-                            doc.commit();
-                        }
+            KeyModifiers::CONTROL if event.kind == MouseEventKind::Down(MouseButton::Left) => {
+                if let MouseLocation::File(idx, loc) = self.find_mouse_location(lua, event) {
+                    self.cache_old_ptr(&idx);
+                    self.ptr.clone_from(&idx);
+                    self.update_cwd();
+                    if let Some(doc) = self.try_doc_mut() {
+                        doc.new_cursor(loc);
+                        doc.commit();
                     }
                 }
             }

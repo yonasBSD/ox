@@ -75,9 +75,9 @@ impl CommandLineInterface {
                 stdin: j.contains("--stdin"),
                 config_assist: j.contains("--config-assist"),
             },
-            file_type: j.option_arg::<String, Key>(filetype.clone()),
+            file_type: j.option_arg::<String, Key>(filetype),
             config_path: j
-                .option_arg::<String, Key>(config.clone())
+                .option_arg::<String, Key>(config)
                 .unwrap_or_else(|| "~/.oxrc".to_string()),
             to_open: j.finish().into_iter().filter(|o| o != "--").collect(),
         }

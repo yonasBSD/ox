@@ -11,11 +11,11 @@ mod ui;
 
 use cli::CommandLineInterface;
 use config::{
-    get_listeners, key_to_string, run_key, run_key_before, Assistant, Config, PLUGIN_BOOTSTRAP,
-    PLUGIN_MANAGER, PLUGIN_NETWORKING, PLUGIN_RUN,
+    Assistant, Config, PLUGIN_BOOTSTRAP, PLUGIN_MANAGER, PLUGIN_NETWORKING, PLUGIN_RUN,
+    get_listeners, key_to_string, run_key, run_key_before,
 };
 use crossterm::event::{Event as CEvent, KeyEvent, KeyEventKind};
-use editor::{allowed_by_multi_cursor, handle_multiple_cursors, Editor, FileTypes};
+use editor::{Editor, FileTypes, allowed_by_multi_cursor, handle_multiple_cursors};
 use error::{OxError, Result};
 use events::wait_for_event;
 use kaolinite::event::{Error as KError, Event};
@@ -26,7 +26,7 @@ use mlua::Error::{RuntimeError, SyntaxError};
 use mlua::{AnyUserData, FromLua, Lua, Value};
 use std::io::ErrorKind;
 use std::result::Result as RResult;
-use ui::{fatal_error, Feedback};
+use ui::{Feedback, fatal_error};
 
 /// Get editor helper macro
 #[macro_export]
@@ -90,7 +90,7 @@ fn run(cli: &CommandLineInterface) -> Result<()> {
     if let Some(err) = result {
         // Handle error if available
         handle_lua_error("configuration", Err(err), &mut ged!(mut &editor).feedback);
-    };
+    }
 
     // Run plug-ins
     handle_lua_error(
@@ -123,7 +123,7 @@ fn run(cli: &CommandLineInterface) -> Result<()> {
         // Reset cwd
         let _ = std::env::set_current_dir(&cwd);
         // Open the file
-        let result = ged!(mut &editor).open_or_new(file.to_string());
+        let result = ged!(mut &editor).open_or_new(file.clone());
         handle_file_opening(&editor, result, file);
         // Set read only if applicable
         if cli.flags.read_only {
@@ -202,7 +202,7 @@ fn run(cli: &CommandLineInterface) -> Result<()> {
         if let CEvent::Key(_) = event {
             let has_multicursors = !ged!(&editor)
                 .try_doc()
-                .map_or(true, |doc| doc.secondary_cursors.is_empty());
+                .is_none_or(|doc| doc.secondary_cursors.is_empty());
             if ged!(&editor).active && allowed_by_multi_cursor(&event) && has_multicursors {
                 handle_multiple_cursors(&editor, &event, &lua, &original_loc)?;
             }
@@ -337,7 +337,7 @@ fn handle_lua_error(key_str: &str, error: RResult<(), mlua::Error>, feedback: &m
                 *feedback = Feedback::Error(format!("The command '{key_str}' is not defined"));
             } else {
                 // Some other runtime error
-                *feedback = Feedback::Error(msg.to_string());
+                *feedback = Feedback::Error(msg);
             }
         }
         // Handle a syntax error
@@ -394,7 +394,7 @@ fn handle_file_opening(editor: &AnyUserData, result: Result<()>, name: &str) {
 
 /// Run a command in the editor
 fn run_editor_command(editor: &AnyUserData, cmd: &str, lua: &Lua) {
-    let cmd = cmd.replace('\'', "\\'").to_string();
+    let cmd = cmd.replace('\'', "\\'");
     if let [subcmd, arguments @ ..] = cmd.split(' ').collect::<Vec<&str>>().as_slice() {
         let arguments = arguments.join("', '");
         let code =

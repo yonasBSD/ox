@@ -113,7 +113,9 @@ fn tab_boundaries() {
 fn searching() {
     // Basic URL grabber test
     let mut url_grabber = Searcher::new(r"\b(?:https?://|www\.)\S+\b");
-    let text = st!("click here: https://github.com/curlpipe/ox to see more information or visit https://curlpipe.github.io");
+    let text = st!(
+        "click here: https://github.com/curlpipe/ox to see more information or visit https://curlpipe.github.io"
+    );
     assert_eq!(
         url_grabber.lfind(&text),
         Some(Match {
@@ -284,10 +286,14 @@ fn events() {
             Event::SplitDown(Loc { x: 0, y: 3 }),
         ],
     );
-    assert!(Event::Insert(Loc { x: 0, y: 1 }, st!("Test"))
-        .same_type(&Event::Insert(Loc { x: 2, y: 3 }, st!("334"))));
-    assert!(!Event::Delete(Loc { x: 0, y: 1 }, st!("Test"))
-        .same_type(&Event::Insert(Loc { x: 2, y: 3 }, st!("334"))));
+    assert!(
+        Event::Insert(Loc { x: 0, y: 1 }, st!("Test"))
+            .same_type(&Event::Insert(Loc { x: 2, y: 3 }, st!("334")))
+    );
+    assert!(
+        !Event::Delete(Loc { x: 0, y: 1 }, st!("Test"))
+            .same_type(&Event::Insert(Loc { x: 2, y: 3 }, st!("334")))
+    );
 }
 
 #[test]
@@ -935,12 +941,16 @@ fn document_indices() {
 
 #[test]
 fn file_paths() {
-    assert!(get_absolute_path("tests/data/unicode.txt")
-        .unwrap()
-        .starts_with("/home/"));
-    assert!(get_absolute_path("tests/data/unicode.txt")
-        .unwrap()
-        .starts_with("/home/"));
+    assert!(
+        get_absolute_path("tests/data/unicode.txt")
+            .unwrap()
+            .starts_with("/home/")
+    );
+    assert!(
+        get_absolute_path("tests/data/unicode.txt")
+            .unwrap()
+            .starts_with("/home/")
+    );
     assert_eq!(
         get_file_name("tests/data/unicode.txt"),
         Some(st!("unicode.txt"))

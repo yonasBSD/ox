@@ -29,7 +29,7 @@ pub struct Loc {
 impl Loc {
     /// Shorthand to produce a location
     #[must_use]
-    pub fn at(x: usize, y: usize) -> Self {
+    pub const fn at(x: usize, y: usize) -> Self {
         Self { y, x }
     }
 }
@@ -44,7 +44,7 @@ pub struct Size {
 impl Size {
     /// Shorthand to produce a size
     #[must_use]
-    pub fn is(w: usize, h: usize) -> Self {
+    pub const fn is(w: usize, h: usize) -> Self {
         Self { w, h }
     }
 }

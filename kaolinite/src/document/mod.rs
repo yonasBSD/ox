@@ -2,7 +2,7 @@
 use crate::event::{Error, Event, EventMgmt, Result};
 use crate::map::CharMap;
 use crate::searching::{Match, Searcher};
-use crate::utils::{modeline, width, Loc, Size};
+use crate::utils::{Loc, Size, modeline, width};
 use ropey::Rope;
 use std::path::Path;
 
@@ -16,6 +16,7 @@ pub use cursor::Cursor;
 pub use disk::DocumentInfo;
 
 /// A document struct manages a file.
+///
 /// It has tools to read, write and traverse a document.
 /// By default, it uses file buffering so it can open almost immediately.
 /// To start executing events, remember to use the `Document::exe` function and check out
@@ -74,7 +75,7 @@ impl Document {
     }
 
     /// Sets the tab display width measured in spaces, default being 4
-    pub fn set_tab_width(&mut self, tab_width: usize) {
+    pub const fn set_tab_width(&mut self, tab_width: usize) {
         self.tab_width = tab_width;
     }
 

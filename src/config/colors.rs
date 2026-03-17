@@ -378,7 +378,9 @@ impl Color {
             },
             LuaValue::Table(table) => {
                 if table.len().unwrap_or(3) != 3 {
-                    issue_warning("Invalid RGB sequence used in configuration file (must be a list of 3 numbers)");
+                    issue_warning(
+                        "Invalid RGB sequence used in configuration file (must be a list of 3 numbers)",
+                    );
                     return Self::Transparent;
                 }
                 let mut tri: Vec<u8> = vec![];
@@ -386,7 +388,9 @@ impl Color {
                     if let Ok(val) = table.pop() {
                         tri.insert(0, val);
                     } else {
-                        issue_warning("Invalid RGB sequence provided - please check your numerical values are between 0 and 255");
+                        issue_warning(
+                            "Invalid RGB sequence provided - please check your numerical values are between 0 and 255",
+                        );
                         tri.insert(0, 255);
                     }
                 }
@@ -414,11 +418,11 @@ impl Color {
     pub fn to_lua(&self, env: &Lua) -> LuaValue {
         let msg = "Failed to create lua string";
         match self {
-            Color::Hex(hex) => {
+            Self::Hex(hex) => {
                 let string = env.create_string(hex).expect(msg);
                 LuaValue::String(string)
             }
-            Color::Rgb(r, g, b) => {
+            Self::Rgb(r, g, b) => {
                 // Create lua table
                 let table = env.create_table().expect("Failed to create lua table");
                 let _ = table.push(*r as isize);
@@ -426,24 +430,24 @@ impl Color {
                 let _ = table.push(*b as isize);
                 LuaValue::Table(table)
             }
-            Color::Ansi(code) => LuaValue::Integer(i64::from(*code)),
-            Color::Black => LuaValue::String(env.create_string("black").expect(msg)),
-            Color::DarkGrey => LuaValue::String(env.create_string("darkgrey").expect(msg)),
-            Color::Red => LuaValue::String(env.create_string("red").expect(msg)),
-            Color::DarkRed => LuaValue::String(env.create_string("darkred").expect(msg)),
-            Color::Green => LuaValue::String(env.create_string("green").expect(msg)),
-            Color::DarkGreen => LuaValue::String(env.create_string("darkgreen").expect(msg)),
-            Color::Yellow => LuaValue::String(env.create_string("yellow").expect(msg)),
-            Color::DarkYellow => LuaValue::String(env.create_string("darkyellow").expect(msg)),
-            Color::Blue => LuaValue::String(env.create_string("blue").expect(msg)),
-            Color::DarkBlue => LuaValue::String(env.create_string("darkblue").expect(msg)),
-            Color::Magenta => LuaValue::String(env.create_string("magenta").expect(msg)),
-            Color::DarkMagenta => LuaValue::String(env.create_string("darkmagenta").expect(msg)),
-            Color::Cyan => LuaValue::String(env.create_string("cyan").expect(msg)),
-            Color::DarkCyan => LuaValue::String(env.create_string("darkcyan").expect(msg)),
-            Color::White => LuaValue::String(env.create_string("white").expect(msg)),
-            Color::Grey => LuaValue::String(env.create_string("grey").expect(msg)),
-            Color::Transparent => LuaValue::String(env.create_string("transparent").expect(msg)),
+            Self::Ansi(code) => LuaValue::Integer(i64::from(*code)),
+            Self::Black => LuaValue::String(env.create_string("black").expect(msg)),
+            Self::DarkGrey => LuaValue::String(env.create_string("darkgrey").expect(msg)),
+            Self::Red => LuaValue::String(env.create_string("red").expect(msg)),
+            Self::DarkRed => LuaValue::String(env.create_string("darkred").expect(msg)),
+            Self::Green => LuaValue::String(env.create_string("green").expect(msg)),
+            Self::DarkGreen => LuaValue::String(env.create_string("darkgreen").expect(msg)),
+            Self::Yellow => LuaValue::String(env.create_string("yellow").expect(msg)),
+            Self::DarkYellow => LuaValue::String(env.create_string("darkyellow").expect(msg)),
+            Self::Blue => LuaValue::String(env.create_string("blue").expect(msg)),
+            Self::DarkBlue => LuaValue::String(env.create_string("darkblue").expect(msg)),
+            Self::Magenta => LuaValue::String(env.create_string("magenta").expect(msg)),
+            Self::DarkMagenta => LuaValue::String(env.create_string("darkmagenta").expect(msg)),
+            Self::Cyan => LuaValue::String(env.create_string("cyan").expect(msg)),
+            Self::DarkCyan => LuaValue::String(env.create_string("darkcyan").expect(msg)),
+            Self::White => LuaValue::String(env.create_string("white").expect(msg)),
+            Self::Grey => LuaValue::String(env.create_string("grey").expect(msg)),
+            Self::Transparent => LuaValue::String(env.create_string("transparent").expect(msg)),
         }
     }
 
@@ -452,7 +456,7 @@ impl Color {
         let true_color = supports_true_color();
         // Perform conversion
         Ok(match self {
-            Color::Hex(hex) => {
+            Self::Hex(hex) => {
                 let (r, g, b) = Self::hex_to_rgb(hex)?;
                 if true_color {
                     CColor::Rgb { r, g, b }
@@ -460,7 +464,7 @@ impl Color {
                     CColor::AnsiValue(rgb_to_xterm256(r, g, b))
                 }
             }
-            Color::Rgb(r, g, b) => {
+            Self::Rgb(r, g, b) => {
                 if true_color {
                     CColor::Rgb {
                         r: *r,
@@ -471,24 +475,24 @@ impl Color {
                     CColor::AnsiValue(rgb_to_xterm256(*r, *g, *b))
                 }
             }
-            Color::Ansi(code) => CColor::AnsiValue(*code),
-            Color::Black => CColor::Black,
-            Color::DarkGrey => CColor::DarkGrey,
-            Color::Red => CColor::Red,
-            Color::DarkRed => CColor::DarkRed,
-            Color::Green => CColor::Green,
-            Color::DarkGreen => CColor::DarkGreen,
-            Color::Yellow => CColor::Yellow,
-            Color::DarkYellow => CColor::DarkYellow,
-            Color::Blue => CColor::Blue,
-            Color::DarkBlue => CColor::DarkBlue,
-            Color::Magenta => CColor::Magenta,
-            Color::DarkMagenta => CColor::DarkMagenta,
-            Color::Cyan => CColor::Cyan,
-            Color::DarkCyan => CColor::DarkCyan,
-            Color::White => CColor::White,
-            Color::Grey => CColor::Grey,
-            Color::Transparent => CColor::Reset,
+            Self::Ansi(code) => CColor::AnsiValue(*code),
+            Self::Black => CColor::Black,
+            Self::DarkGrey => CColor::DarkGrey,
+            Self::Red => CColor::Red,
+            Self::DarkRed => CColor::DarkRed,
+            Self::Green => CColor::Green,
+            Self::DarkGreen => CColor::DarkGreen,
+            Self::Yellow => CColor::Yellow,
+            Self::DarkYellow => CColor::DarkYellow,
+            Self::Blue => CColor::Blue,
+            Self::DarkBlue => CColor::DarkBlue,
+            Self::Magenta => CColor::Magenta,
+            Self::DarkMagenta => CColor::DarkMagenta,
+            Self::Cyan => CColor::Cyan,
+            Self::DarkCyan => CColor::DarkCyan,
+            Self::White => CColor::White,
+            Self::Grey => CColor::Grey,
+            Self::Transparent => CColor::Reset,
         })
     }
 

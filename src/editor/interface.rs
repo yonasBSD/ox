@@ -3,7 +3,7 @@ use crate::config::SyntaxHighlighting as SH;
 use crate::editor::{FTParts, FileLayout};
 use crate::error::{OxError, Result};
 use crate::events::wait_for_event_hog;
-use crate::ui::{key_event, size, Feedback};
+use crate::ui::{Feedback, key_event, size};
 #[cfg(not(target_os = "windows"))]
 use crate::ui::{remove_ansi_codes, replace_reset, strip_escape_codes};
 use crate::{config, display, handle_lua_error};
@@ -11,10 +11,10 @@ use crossterm::{
     event::{KeyCode as KCode, KeyModifiers as KMod},
     style::{Attribute, Color, SetAttribute, SetBackgroundColor as Bg, SetForegroundColor as Fg},
 };
-use kaolinite::utils::{file_or_dir, get_cwd, get_parent, list_dir, width, width_char, Loc, Size};
+use kaolinite::utils::{Loc, Size, file_or_dir, get_cwd, get_parent, list_dir, width, width_char};
 use mlua::Lua;
 use std::ops::Range;
-use synoptic::{trim_fit, Highlighter, TokOpt};
+use synoptic::{Highlighter, TokOpt, trim_fit};
 
 use super::Editor;
 
@@ -310,7 +310,9 @@ impl Editor {
             let num = doc.line_number(y + doc.offset.y);
             let padding_left = " ".repeat(ln_pad_left);
             let padding_right = " ".repeat(ln_pad_right);
-            result += &format!("{line_number_bg}{line_number_fg}{padding_left}{num}{padding_right}│{editor_fg}{editor_bg}");
+            result += &format!(
+                "{line_number_bg}{line_number_fg}{padding_left}{num}{padding_right}│{editor_fg}{editor_bg}"
+            );
             total_width += ln_pad_left + ln_pad_right + width(&num, tab_width) + 1;
         } else {
             result += &format!("{editor_fg}{editor_bg}");
@@ -410,7 +412,7 @@ impl Editor {
             .help_message
             .get(at)
             .map_or((false, " ".repeat(max_width)), |(hl, content)| {
-                (*hl, content.to_string())
+                (*hl, content.clone())
             });
         let extra_padding = " ".repeat(max_width.saturating_sub(width(&msg, tab_width)));
         if hl {
@@ -749,7 +751,7 @@ impl Editor {
         while !done {
             // Find the suggested files and folders
             let parent = if input.ends_with('/') || input.ends_with('\\') {
-                input.to_string()
+                input.clone()
             } else {
                 get_parent(&input).unwrap_or_default()
             };
@@ -832,10 +834,8 @@ impl Editor {
                     }
                     // Cycle through suggestions
                     (KMod::SHIFT, KCode::BackTab) => offset = offset.saturating_sub(1),
-                    (KMod::NONE, KCode::Tab) => {
-                        if offset + 1 < suggestions.len() {
-                            offset += 1;
-                        }
+                    (KMod::NONE, KCode::Tab) if offset + 1 < suggestions.len() => {
+                        offset += 1;
                     }
                     _ => (),
                 }

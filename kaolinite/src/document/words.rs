@@ -65,7 +65,10 @@ impl Document {
             WordState::Out => {
                 // Cursor is not touching any words, find previous end
                 let mut shift_back = x;
-                while let WordState::Out = self.cursor_word_state(&line, &words, shift_back) {
+                while matches!(
+                    self.cursor_word_state(&line, &words, shift_back),
+                    WordState::Out
+                ) {
                     shift_back = shift_back.saturating_sub(1);
                     if shift_back == 0 {
                         break;
@@ -97,7 +100,10 @@ impl Document {
             WordState::Out => {
                 // Cursor is not touching any words, find previous end
                 let mut shift_back = x;
-                while let WordState::Out = self.cursor_word_state(&line, &words, shift_back) {
+                while matches!(
+                    self.cursor_word_state(&line, &words, shift_back),
+                    WordState::Out
+                ) {
                     shift_back = shift_back.saturating_sub(1);
                     if shift_back == 0 {
                         break;
@@ -156,7 +162,10 @@ impl Document {
             WordState::Out => {
                 // Cursor is not touching any words, find next start
                 let mut shift_forward = x;
-                while let WordState::Out = self.cursor_word_state(&line, &words, shift_forward) {
+                while matches!(
+                    self.cursor_word_state(&line, &words, shift_forward),
+                    WordState::Out
+                ) {
                     shift_forward += 1;
                     if shift_forward >= line.chars().count() {
                         break;
@@ -199,7 +208,10 @@ impl Document {
             WordState::Out => {
                 // Cursor is not touching any words, find next start
                 let mut shift_forward = x;
-                while let WordState::Out = self.cursor_word_state(&line, &words, shift_forward) {
+                while matches!(
+                    self.cursor_word_state(&line, &words, shift_forward),
+                    WordState::Out
+                ) {
                     shift_forward += 1;
                     if shift_forward >= line.chars().count() {
                         break;
@@ -251,7 +263,10 @@ impl Document {
             WordState::Out => {
                 // Delete back to the end of the previous word
                 let mut shift_back = x;
-                while let WordState::Out = self.cursor_word_state(&line, &words, shift_back) {
+                while matches!(
+                    self.cursor_word_state(&line, &words, shift_back),
+                    WordState::Out
+                ) {
                     shift_back = shift_back.saturating_sub(1);
                     if shift_back == 0 {
                         break;

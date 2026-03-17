@@ -37,7 +37,7 @@ impl MacroMan {
     }
 
     /// Activate macro
-    pub fn play(&mut self, reps: usize) {
+    pub const fn play(&mut self, reps: usize) {
         self.reps = reps;
         self.just_completed = false;
         self.playing = true;

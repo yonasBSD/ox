@@ -13,10 +13,9 @@ impl Editor {
             if !(self.plugin_active || self.pasting || self.macro_man.playing || multi_cursors) {
                 let last_ev = self.try_doc().unwrap().event_mgmt.last_event.as_ref();
                 // If last event is present and the same as this one, commit
-                let event_type_differs = last_ev.map(|e1| e1.same_type(&ev)) != Some(true);
+                let event_type_differs = last_ev.is_none_or(|e1| !e1.same_type(&ev));
                 // If last event is present and on a different line from the previous, commit
-                let event_on_different_line =
-                    last_ev.map(|e| e.loc().y == ev.loc().y) != Some(true);
+                let event_on_different_line = last_ev.is_none_or(|e| e.loc().y != ev.loc().y);
                 // Commit if necessary
                 if event_type_differs || event_on_different_line {
                     self.try_doc_mut().unwrap().commit();

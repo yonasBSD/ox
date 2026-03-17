@@ -17,11 +17,11 @@ use crossterm::{
         LeaveAlternateScreen,
     },
 };
-use kaolinite::utils::{width, Size};
+use kaolinite::utils::{Size, width};
 use mlua::AnyUserData;
 use std::collections::HashMap;
 use std::env;
-use std::io::{stdout, Stdout, Write};
+use std::io::{Stdout, Write, stdout};
 #[cfg(not(target_os = "windows"))]
 use synoptic::Regex;
 
@@ -167,9 +167,9 @@ pub struct Terminal {
 
 impl Terminal {
     pub fn new(config: AnyUserData) -> Self {
-        Terminal {
+        Self {
             stdout: stdout(),
-            cache: String::with_capacity(size().map(|s| s.w * s.h).unwrap_or(1000)),
+            cache: String::with_capacity(size().map_or(1000, |s| s.w * s.h)),
             config,
             last_copy: String::new(),
         }
@@ -305,10 +305,15 @@ pub fn rgb_to_xterm256(r: u8, g: u8, b: u8) -> u8 {
     let mut closest_index = 0;
     for (index, &(xr, xg, xb)) in &lookup {
         // Calculate the Euclidean distance in RGB space
-        let distance = ((f64::from(r) - f64::from(xr)).powi(2)
-            + (f64::from(g) - f64::from(xg)).powi(2)
-            + (f64::from(b) - f64::from(xb)).powi(2))
-        .sqrt();
+        let distance = (f64::from(b) - f64::from(xb))
+            .mul_add(
+                f64::from(b) - f64::from(xb),
+                (f64::from(g) - f64::from(xg)).mul_add(
+                    f64::from(g) - f64::from(xg),
+                    (f64::from(r) - f64::from(xr)).powi(2),
+                ),
+            )
+            .sqrt();
         if distance < min_distance {
             min_distance = distance;
             closest_index = *index;

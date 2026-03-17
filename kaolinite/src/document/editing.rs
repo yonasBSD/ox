@@ -115,7 +115,7 @@ impl Document {
         self.dbl_map.insert(loc, dbl_map);
         self.tab_map.insert(loc, tab_map);
         // Update cache
-        self.lines.insert(loc, contents.to_string());
+        self.lines.insert(loc, contents.clone());
         // Update rope
         let char_idx = self.file.line_to_char(loc);
         self.file.insert(char_idx, &(contents + "\n"));

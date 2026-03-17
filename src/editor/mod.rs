@@ -2,7 +2,7 @@
 use crate::config;
 use crate::config::{Config, Indentation};
 use crate::error::{OxError, Result};
-use crate::ui::{size, Feedback, Terminal};
+use crate::ui::{Feedback, Terminal, size};
 use crossterm::event::{
     Event as CEvent, KeyCode as KCode, KeyModifiers as KMod, MouseEvent, MouseEventKind,
 };
@@ -541,9 +541,9 @@ impl Editor {
             // If we're playing back a macro, use the last text the user copied
             // (to prevent hard-coded pasting)
             let text = if self.macro_man.playing {
-                self.terminal.last_copy.to_string()
+                self.terminal.last_copy.clone()
             } else {
-                text.to_string()
+                text
             };
             // Save state before paste
             self.try_doc_mut().unwrap().commit();

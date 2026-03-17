@@ -1,9 +1,9 @@
+use crate::Feedback;
 /// Utilities for configuring and rendering parts of the interface
 use crate::cli::VERSION;
 use crate::editor::{Editor, FileContainer};
 #[cfg(not(target_os = "windows"))]
 use crate::pty::Shell;
-use crate::Feedback;
 use kaolinite::searching::Searcher;
 use kaolinite::utils::{get_absolute_path, get_file_ext, get_file_name};
 use mlua::prelude::*;
@@ -123,8 +123,8 @@ impl GreetingMessage {
     pub fn render(&self, lua: &Lua) -> (String, Vec<usize>) {
         let mut result = self.format.clone();
         // Substitute in simple values
-        result = result.replace("{version}", VERSION).to_string();
-        result = result.replace('\t', "    ").to_string();
+        result = result.replace("{version}", VERSION);
+        result = result.replace('\t', "    ");
         // Handle highlighted part
         let start = result.find("{highlight_start}");
         let end = result.find("{highlight_end}");
@@ -135,8 +135,8 @@ impl GreetingMessage {
         } else {
             vec![]
         };
-        result = result.replace("{highlight_start}", "").to_string();
-        result = result.replace("{highlight_end}", "").to_string();
+        result = result.replace("{highlight_start}", "");
+        result = result.replace("{highlight_end}", "");
         // Find functions to call and substitute in
         let mut searcher = Searcher::new(r"\{[A-Za-z_][A-Za-z0-9_]*\}");
         while let Some(m) = searcher.lfind(&result) {
@@ -197,7 +197,7 @@ impl HelpMessage {
         let mut message = self.format.clone();
         //result = result.replace("{highlight_start}", &highlight).to_string();
         //result = result.replace("{highlight_end}", &editor_fg).to_string();
-        message = message.replace("{version}", VERSION).to_string();
+        message = message.replace("{version}", VERSION);
         // Find functions to call and substitute in
         let mut searcher = Searcher::new(r"\{[A-Za-z_][A-Za-z0-9_]*\}");
         while let Some(m) = searcher.lfind(&message) {
@@ -285,16 +285,12 @@ impl TabLine {
             "[+]"
         };
         let mut result = self.format.clone();
-        result = result
-            .replace("{file_extension}", &file_extension)
-            .to_string();
-        result = result.replace("{file_name}", &file_name).to_string();
-        result = result
-            .replace("{absolute_path}", &absolute_path)
-            .to_string();
-        result = result.replace("{path}", &path).to_string();
-        result = result.replace("{modified}", modified).to_string();
-        result = result.replace("{icon}", &icon).to_string();
+        result = result.replace("{file_extension}", &file_extension);
+        result = result.replace("{file_name}", &file_name);
+        result = result.replace("{absolute_path}", &absolute_path);
+        result = result.replace("{path}", &path);
+        result = result.replace("{modified}", modified);
+        result = result.replace("{icon}", &icon);
         // Find functions to call and substitute in
         let mut searcher = Searcher::new(r"\{[A-Za-z_][A-Za-z0-9_]*\}");
         while let Some(m) = searcher.lfind(&result) {
@@ -387,18 +383,16 @@ impl StatusLine {
 
         for part in &self.parts {
             let mut part = part.clone();
-            part = part.replace("{file_name}", &file_name).to_string();
-            part = part
-                .replace("{file_extension}", &file_extension)
-                .to_string();
-            part = part.replace("{icon}", &icon).to_string();
-            part = part.replace("{path}", &path).to_string();
-            part = part.replace("{absolute_path}", &absolute_path).to_string();
-            part = part.replace("{modified}", modified).to_string();
-            part = part.replace("{file_type}", &file_type).to_string();
-            part = part.replace("{cursor_y}", &cursor_y).to_string();
-            part = part.replace("{cursor_x}", &cursor_x).to_string();
-            part = part.replace("{line_count}", &line_count).to_string();
+            part = part.replace("{file_name}", &file_name).clone();
+            part = part.replace("{file_extension}", &file_extension).clone();
+            part = part.replace("{icon}", &icon).clone();
+            part = part.replace("{path}", &path).clone();
+            part = part.replace("{absolute_path}", &absolute_path).clone();
+            part = part.replace("{modified}", modified).clone();
+            part = part.replace("{file_type}", &file_type).clone();
+            part = part.replace("{cursor_y}", &cursor_y).clone();
+            part = part.replace("{cursor_x}", &cursor_x).clone();
+            part = part.replace("{line_count}", &line_count).clone();
             // Find functions to call and substitute in
             let mut searcher = Searcher::new(r"\{[A-Za-z_][A-Za-z0-9_]*\}");
             while let Some(m) = searcher.lfind(&part) {

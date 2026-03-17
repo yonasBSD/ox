@@ -2,7 +2,7 @@
 use crate::config::FileTree as CfgFT;
 use crate::editor::FileLayout;
 use crate::ui::size;
-use crate::{config, Editor, Feedback, FileTypes, OxError, Result};
+use crate::{Editor, Feedback, FileTypes, OxError, Result, config};
 use kaolinite::utils::{file_or_dir, get_cwd, get_file_name};
 use std::path::{Path, PathBuf};
 
@@ -20,7 +20,7 @@ pub enum FileTree {
         path: String,
         /// NOTE: when files is None, it means it has been unexpanded
         /// directories lazily expand, only when the user requests them to be opened
-        files: Option<Vec<FileTree>>,
+        files: Option<Vec<Self>>,
     },
 }
 
@@ -138,8 +138,8 @@ impl FileTree {
                     files.sort_by(|a, b| {
                         let a_is_hidden = a.is_hidden();
                         let b_is_hidden = b.is_hidden();
-                        let a_is_dir = matches!(a, FileTree::Dir { .. });
-                        let b_is_dir = matches!(b, FileTree::Dir { .. });
+                        let a_is_dir = matches!(a, Self::Dir { .. });
+                        let b_is_dir = matches!(b, Self::Dir { .. });
 
                         // Directories come first
                         match (a_is_hidden, b_is_hidden) {
@@ -153,12 +153,10 @@ impl FileTree {
                                     _ => {
                                         // If both are the same type, compare by path
                                         let a_path = match a {
-                                            FileTree::File { path }
-                                            | FileTree::Dir { path, .. } => path,
+                                            Self::File { path } | Self::Dir { path, .. } => path,
                                         };
                                         let b_path = match b {
-                                            FileTree::File { path }
-                                            | FileTree::Dir { path, .. } => path,
+                                            Self::File { path } | Self::Dir { path, .. } => path,
                                         };
                                         a_path.cmp(b_path)
                                     }
@@ -253,7 +251,7 @@ impl FileTree {
                 } else {
                     (String::new(), None)
                 };
-                let file_name = get_file_name(path).unwrap_or(path.to_string());
+                let file_name = get_file_name(path).unwrap_or(path.clone());
                 (
                     vec![(0, icon, icon_color, file_name)],
                     if self.is_selected(sel) { Some(0) } else { None },
@@ -268,7 +266,7 @@ impl FileTree {
                 } else {
                     (String::new(), None)
                 };
-                let file_name = get_file_name(path).unwrap_or(path.to_string());
+                let file_name = get_file_name(path).unwrap_or(path.clone());
                 result.push((0, icon, icon_color, file_name));
                 if self.is_selected(sel) {
                     at = Some(result.len().saturating_sub(1));
@@ -304,10 +302,10 @@ impl FileTree {
     /// Find the file path at a certain index (recursive)
     pub fn flatten_recursive(&self) -> Vec<String> {
         match self {
-            Self::File { path } => vec![path.to_string()],
+            Self::File { path } => vec![path.clone()],
             Self::Dir { path, files } => {
                 let mut result = vec![];
-                result.push(path.to_string());
+                result.push(path.clone());
                 if let Some(files) = files {
                     for file in files {
                         result.append(&mut file.flatten_recursive());
@@ -378,7 +376,7 @@ impl Editor {
     pub fn open_file_tree(&mut self) {
         if !self.file_tree_is_open() {
             // Calculate display proportions
-            let total_width = size().map(|s| s.w as f64).unwrap_or(1.0);
+            let total_width = size().map_or(1.0, |s| s.w as f64);
             let width = config!(self.config, file_tree).width as f64 / total_width;
             let other = 1.0 - width as f64;
             // Set up file tree values
@@ -630,7 +628,7 @@ impl Editor {
             if file_or_dir(old_file) == "file" {
                 std::fs::copy(old_file, path.clone())?;
                 self.file_tree_refresh();
-                self.file_tree_selection = Some(path.clone());
+                self.file_tree_selection = Some(path);
                 self.feedback = Feedback::Info("File copied".to_string());
             } else {
                 self.feedback = Feedback::Error("Not a file".to_string());

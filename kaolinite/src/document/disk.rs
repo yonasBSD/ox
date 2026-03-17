@@ -1,6 +1,6 @@
 use crate::document::Cursor;
 use crate::event::{Error, EventMgmt, Result};
-use crate::map::{form_map, CharMap};
+use crate::map::{CharMap, form_map};
 use crate::utils::get_absolute_path;
 use crate::{Document, Loc, Size};
 use ropey::Rope;

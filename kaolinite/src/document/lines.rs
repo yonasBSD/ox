@@ -6,7 +6,7 @@ impl Document {
     /// Get the line at a specified index
     #[must_use]
     pub fn line(&self, line: usize) -> Option<String> {
-        Some(self.lines.get(line)?.to_string())
+        Some(self.lines.get(line)?.clone())
     }
 
     /// Get the line at a specified index and trim it

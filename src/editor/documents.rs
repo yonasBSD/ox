@@ -1,8 +1,8 @@
+use crate::Loc;
 /// Tools for placing all information about open files into one place
-use crate::editor::{get_absolute_path, Editor, FileType};
+use crate::editor::{Editor, FileType, get_absolute_path};
 #[cfg(not(target_os = "windows"))]
 use crate::pty::Pty;
-use crate::Loc;
 use kaolinite::Document;
 use kaolinite::Size;
 use std::ops::Range;
@@ -13,15 +13,16 @@ use synoptic::Highlighter;
 pub type Span = Vec<(Vec<usize>, Range<usize>, Range<usize>)>;
 
 // File split structure
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub enum FileLayout {
     /// Side-by-side documents (with proportions)
-    SideBySide(Vec<(FileLayout, f64)>),
+    SideBySide(Vec<(Self, f64)>),
     /// Top-to-bottom documents (with proportions)
-    TopToBottom(Vec<(FileLayout, f64)>),
+    TopToBottom(Vec<(Self, f64)>),
     /// Single file container (and pointer for tabs)
     Atom(Vec<FileContainer>, usize),
     /// Placeholder for an empty file split
+    #[default]
     None,
     /// Representing a file tree
     FileTree,
@@ -31,12 +32,6 @@ pub enum FileLayout {
     #[allow(dead_code)]
     #[cfg(target_os = "windows")]
     Terminal(()),
-}
-
-impl Default for FileLayout {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 impl FileLayout {
@@ -134,7 +129,7 @@ impl FileLayout {
                 }
             })
             .collect();
-        appropriate.sort_by(|a, b| a.2.start.cmp(&b.2.start));
+        appropriate.sort_by_key(|a| a.2.start);
         appropriate
     }
 
@@ -215,7 +210,7 @@ impl FileLayout {
     }
 
     /// Get the `FileLayout` at a certain index
-    pub fn get_raw(&self, mut idx: Vec<usize>) -> Option<&FileLayout> {
+    pub fn get_raw(&self, mut idx: Vec<usize>) -> Option<&Self> {
         match self {
             Self::None | Self::Atom(_, _) | Self::FileTree | Self::Terminal(_) => Some(self),
             Self::SideBySide(layouts) => {
@@ -238,7 +233,7 @@ impl FileLayout {
     }
 
     /// Get the `FileLayout` at a certain index (mutable)
-    pub fn get_raw_mut(&mut self, mut idx: Vec<usize>) -> Option<&mut FileLayout> {
+    pub fn get_raw_mut(&mut self, mut idx: Vec<usize>) -> Option<&mut Self> {
         if idx.is_empty() {
             Some(self)
         } else {
@@ -257,7 +252,7 @@ impl FileLayout {
     }
 
     /// Get the `FileLayout` at a certain index
-    pub fn set(&mut self, mut idx: Vec<usize>, fl: FileLayout) {
+    pub fn set(&mut self, mut idx: Vec<usize>, fl: Self) {
         match self {
             Self::None | Self::Atom(_, _) | Self::FileTree | Self::Terminal(_) => *self = fl,
             Self::SideBySide(layouts) | Self::TopToBottom(layouts) => {
@@ -391,7 +386,7 @@ impl FileLayout {
         } else {
             // This is the root node of the entire tree!
             // In this case, we just set the whole thing to FileLayout::None
-            self.set(at, FileLayout::None);
+            self.set(at, Self::None);
         }
     }
 
@@ -480,16 +475,14 @@ impl FileLayout {
             }
         }
         // Zoom in to find a new cursor position
-        while let Some(FileLayout::TopToBottom(_) | FileLayout::SideBySide(_)) =
-            self.get_raw(copy.clone())
-        {
+        while let Some(Self::TopToBottom(_) | Self::SideBySide(_)) = self.get_raw(copy.clone()) {
             copy.push(0);
         }
         copy
     }
 
     /// Open a split above the current pointer
-    pub fn open_up(&mut self, at: Vec<usize>, fl: FileLayout) -> Vec<usize> {
+    pub fn open_up(&mut self, at: Vec<usize>, fl: Self) -> Vec<usize> {
         let mut new_ptr = at.clone();
         if let Some(old_fl) = self.get_raw_mut(at.clone()) {
             let new_fl = match old_fl {
@@ -499,7 +492,7 @@ impl FileLayout {
                 | Self::TopToBottom(_)
                 | Self::Terminal(_) => {
                     new_ptr.push(0);
-                    let old_fl = std::mem::replace(old_fl, FileLayout::None);
+                    let old_fl = std::mem::replace(old_fl, Self::None);
                     Self::TopToBottom(vec![(fl, 0.5), (old_fl, 0.5)])
                 }
                 Self::FileTree => return at,
@@ -510,7 +503,7 @@ impl FileLayout {
     }
 
     /// Open a split below the current pointer
-    pub fn open_down(&mut self, at: Vec<usize>, fl: FileLayout) -> Vec<usize> {
+    pub fn open_down(&mut self, at: Vec<usize>, fl: Self) -> Vec<usize> {
         let mut new_ptr = at.clone();
         if let Some(old_fl) = self.get_raw_mut(at.clone()) {
             let new_fl = match old_fl {
@@ -520,7 +513,7 @@ impl FileLayout {
                 | Self::TopToBottom(_)
                 | Self::Terminal(_) => {
                     new_ptr.push(1);
-                    let old_fl = std::mem::replace(old_fl, FileLayout::None);
+                    let old_fl = std::mem::replace(old_fl, Self::None);
                     Self::TopToBottom(vec![(old_fl, 0.5), (fl, 0.5)])
                 }
                 Self::FileTree => return at,
@@ -531,7 +524,7 @@ impl FileLayout {
     }
 
     /// Open a split to the left of the current pointer
-    pub fn open_left(&mut self, at: Vec<usize>, fl: FileLayout) -> Vec<usize> {
+    pub fn open_left(&mut self, at: Vec<usize>, fl: Self) -> Vec<usize> {
         let mut new_ptr = at.clone();
         if let Some(old_fl) = self.get_raw_mut(at.clone()) {
             let new_fl = match old_fl {
@@ -541,7 +534,7 @@ impl FileLayout {
                 | Self::TopToBottom(_)
                 | Self::Terminal(_) => {
                     new_ptr.push(0);
-                    let old_fl = std::mem::replace(old_fl, FileLayout::None);
+                    let old_fl = std::mem::replace(old_fl, Self::None);
                     Self::SideBySide(vec![(fl, 0.5), (old_fl, 0.5)])
                 }
                 Self::FileTree => return at,
@@ -552,7 +545,7 @@ impl FileLayout {
     }
 
     /// Open a split to the right of the current pointer
-    pub fn open_right(&mut self, at: Vec<usize>, fl: FileLayout) -> Vec<usize> {
+    pub fn open_right(&mut self, at: Vec<usize>, fl: Self) -> Vec<usize> {
         let mut new_ptr = at.clone();
         if let Some(old_fl) = self.get_raw_mut(at.clone()) {
             let new_fl = match old_fl {
@@ -562,7 +555,7 @@ impl FileLayout {
                 | Self::TopToBottom(_)
                 | Self::Terminal(_) => {
                     new_ptr.push(1);
-                    let old_fl = std::mem::replace(old_fl, FileLayout::None);
+                    let old_fl = std::mem::replace(old_fl, Self::None);
                     Self::SideBySide(vec![(old_fl, 0.5), (fl, 0.5)])
                 }
                 Self::FileTree => return at,
@@ -575,9 +568,7 @@ impl FileLayout {
     /// Get the proportion of a certain node in the tree
     pub fn get_proportion(&self, mut at: Vec<usize>) -> f64 {
         if let Some(last_idx) = at.pop() {
-            if let Some(FileLayout::SideBySide(layouts) | FileLayout::TopToBottom(layouts)) =
-                self.get_raw(at)
-            {
+            if let Some(Self::SideBySide(layouts) | Self::TopToBottom(layouts)) = self.get_raw(at) {
                 layouts[last_idx].1
             } else {
                 1.0
@@ -591,7 +582,7 @@ impl FileLayout {
     #[allow(clippy::cast_precision_loss)]
     pub fn set_proportion(&mut self, mut at: Vec<usize>, amount: f64) {
         if let Some(last_idx) = at.pop() {
-            if let Some(FileLayout::SideBySide(layouts) | FileLayout::TopToBottom(layouts)) =
+            if let Some(Self::SideBySide(layouts) | Self::TopToBottom(layouts)) =
                 self.get_raw_mut(at)
             {
                 layouts[last_idx].1 = amount;
@@ -612,7 +603,7 @@ impl FileLayout {
         // Find the parent
         if let Some((idx, one_down)) = self.get_sidebyside_parent(at.to_vec()) {
             // Got a side by side parent! Adjust the proportion
-            let mut child = idx.clone();
+            let mut child = idx;
             child.push(one_down);
             let current_prop = self.get_proportion(child.clone());
             if current_prop > amount {
@@ -626,7 +617,7 @@ impl FileLayout {
         // Find the parent
         if let Some((idx, one_down)) = self.get_sidebyside_parent(at.to_vec()) {
             // Got a side by side parent! Adjust the proportion
-            let mut child = idx.clone();
+            let mut child = idx;
             child.push(one_down);
             let current_prop = self.get_proportion(child.clone());
             if current_prop + amount < 1.0 {
@@ -640,7 +631,7 @@ impl FileLayout {
         // Find the parent
         if let Some((idx, one_down)) = self.get_toptobottom_parent(at.to_vec()) {
             // Got a top to bottom parent! Adjust the proportion
-            let mut child = idx.clone();
+            let mut child = idx;
             child.push(one_down);
             let current_prop = self.get_proportion(child.clone());
             if current_prop > amount {
@@ -654,7 +645,7 @@ impl FileLayout {
         // Find the parent
         if let Some((idx, one_down)) = self.get_toptobottom_parent(at.to_vec()) {
             // Got a top to bottom parent! Adjust the proportion
-            let mut child = idx.clone();
+            let mut child = idx;
             child.push(one_down);
             let current_prop = self.get_proportion(child.clone());
             if current_prop + amount < 1.0 {
@@ -667,7 +658,7 @@ impl FileLayout {
     pub fn get_sidebyside_parent(&self, mut at: Vec<usize>) -> Option<(Vec<usize>, usize)> {
         // "Zoom out" to try and find a sidebyside parent
         let mut subidx = None;
-        while let Some(FileLayout::TopToBottom(_) | FileLayout::Atom(_, _) | FileLayout::None) =
+        while let Some(Self::TopToBottom(_) | Self::Atom(_, _) | Self::None) =
             self.get_raw(at.clone())
         {
             if at.is_empty() {
@@ -682,7 +673,7 @@ impl FileLayout {
     pub fn get_toptobottom_parent(&self, mut at: Vec<usize>) -> Option<(Vec<usize>, usize)> {
         // "Zoom out" to try and find a sidebyside parent
         let mut subidx = None;
-        while let Some(FileLayout::SideBySide(_) | FileLayout::Atom(_, _) | FileLayout::None) =
+        while let Some(Self::SideBySide(_) | Self::Atom(_, _) | Self::None) =
             self.get_raw(at.clone())
         {
             if at.is_empty() {

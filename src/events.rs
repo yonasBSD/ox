@@ -1,4 +1,4 @@
-use crate::{ged, handle_lua_error, CEvent, Editor, Feedback, KeyEvent, KeyEventKind, Result};
+use crate::{CEvent, Editor, Feedback, KeyEvent, KeyEventKind, Result, ged, handle_lua_error};
 use crossterm::event::{poll, read};
 use mlua::{AnyUserData, Lua};
 use std::time::Duration;
@@ -103,7 +103,7 @@ pub fn get_event(editor: &mut Editor) -> Option<CEvent> {
     if let Some(ev) = editor.macro_man.next() {
         // Take from macro man
         Some(ev)
-    } else if let Ok(true) = poll(Duration::from_millis(50)) {
+    } else if matches!(poll(Duration::from_millis(50)), Ok(true)) {
         if let Ok(ev) = read() {
             // Use standard crossterm event
             Some(ev)

@@ -1,5 +1,5 @@
 /// map.rs - provides an easy interface to manage characters with large widths
-use crate::utils::{width, Loc};
+use crate::utils::{Loc, width};
 use std::collections::HashMap;
 use unicode_width::UnicodeWidthChar;
 
@@ -17,7 +17,7 @@ pub struct CharMap {
 impl CharMap {
     /// Create a new character map
     #[must_use]
-    pub fn new(map: CharHashMap) -> Self {
+    pub const fn new(map: CharHashMap) -> Self {
         Self { map }
     }
 

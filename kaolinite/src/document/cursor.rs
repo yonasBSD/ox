@@ -320,7 +320,7 @@ impl Document {
 
     /// If the cursor is within the viewport, this will return where it is relatively
     #[must_use]
-    pub fn cursor_loc_in_screen(&self) -> Option<Loc> {
+    pub const fn cursor_loc_in_screen(&self) -> Option<Loc> {
         if self.cursor.loc.x < self.offset.x {
             return None;
         }
@@ -419,7 +419,7 @@ impl Document {
     }
 
     /// Cancels the current selection
-    pub fn cancel_selection(&mut self) {
+    pub const fn cancel_selection(&mut self) {
         self.cursor.selection_end = self.cursor.loc;
     }
 

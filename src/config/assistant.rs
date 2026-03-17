@@ -8,7 +8,7 @@ use crossterm::execute;
 use crossterm::style::{SetBackgroundColor as Bg, SetForegroundColor as Fg};
 use crossterm::terminal::{Clear, ClearType};
 use mlua::prelude::*;
-use std::io::{stdout, Write};
+use std::io::{Write, stdout};
 
 pub const TROPICAL: &str = include_str!("../../plugins/themes/tropical.lua");
 pub const GALAXY: &str = include_str!("../../plugins/themes/galaxy.lua");
@@ -120,7 +120,7 @@ https://aistudio.google.com/app/apikey
 
 6. Paste it below (without spaces)";
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum Theme {
     Tropical,
     Galaxy,
@@ -144,7 +144,7 @@ impl Theme {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum Plugin {
     AutoIndent,
     Pairs,
@@ -166,7 +166,7 @@ impl Plugin {
         format!("load_plugin(\"{plugin_name}.lua\")\n")
     }
 
-    pub fn name(&self) -> &str {
+    pub const fn name(&self) -> &str {
         match self {
             Self::AutoIndent => "autoindent",
             Self::Pairs => "pairs",
@@ -271,7 +271,9 @@ impl Assistant {
             if !because_no_config {
                 let yellow = Fg(Color::Ansi(220).to_color()?);
                 let reset = Fg(Color::Transparent.to_color()?);
-                println!("{yellow}WARNING{reset}: config file already exists, it will be backed-up to ~/.oxrc-backup if you write");
+                println!(
+                    "{yellow}WARNING{reset}: config file already exists, it will be backed-up to ~/.oxrc-backup if you write"
+                );
             }
             let contents = result.to_config();
             if Self::confirmation(
@@ -447,7 +449,9 @@ impl Assistant {
         let reset = Fg(Color::Transparent.to_color()?);
         Self::reset()?;
         println!("Now for the mouse and cursor behaviour\n");
-        println!("{blue}🖰 {reset}Clicking to move cursor, {purple}◅ 🖰 ▻ {reset} Dragging to select text\n");
+        println!(
+            "{blue}🖰 {reset}Clicking to move cursor, {purple}◅ 🖰 ▻ {reset} Dragging to select text\n"
+        );
         result.mouse = Self::confirmation(
             "Would you like to use your mouse cursor in the editor",
             true,
@@ -550,7 +554,9 @@ impl Assistant {
         let reset = Fg(Color::Transparent.to_color()?);
         Self::reset()?;
         println!("{blue}🖹 {yellow}🖉 {reset}");
-        println!("Ox has support for icons, which can enhance the UI, if you choose to enable them, ensure you install nerd fonts\n");
+        println!(
+            "Ox has support for icons, which can enhance the UI, if you choose to enable them, ensure you install nerd fonts\n"
+        );
         result.icons =
             Self::confirmation("Would you like to enable icons, yes is recommended", false);
         Ok(())

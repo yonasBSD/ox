@@ -127,9 +127,11 @@ impl Config {
         // Set up the task manager
         let task_manager = Arc::new(Mutex::new(TaskManager::default()));
         let task_manager_clone = Arc::clone(&task_manager);
-        std::thread::spawn(move || loop {
-            task_manager_clone.lock().unwrap().cycle();
-            std::thread::sleep(std::time::Duration::from_secs(1));
+        std::thread::spawn(move || {
+            loop {
+                task_manager_clone.lock().unwrap().cycle();
+                std::thread::sleep(std::time::Duration::from_secs(1));
+            }
         });
 
         // Push in configuration globals
@@ -179,7 +181,7 @@ impl Config {
         })?;
         lua.globals().set("every", every)?;
 
-        Ok(Config {
+        Ok(Self {
             syntax_highlighting,
             line_numbers,
             colors,
@@ -275,7 +277,7 @@ impl Config {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Indentation {
     Tabs,
     Spaces,

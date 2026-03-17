@@ -39,7 +39,7 @@ impl TaskManager {
     }
 
     /// Obtain a list of functions to execute (and remove them from the execution list)
-    pub fn execution_list(&mut self) -> Vec<String> {
+    pub const fn execution_list(&mut self) -> Vec<String> {
         let mut new = vec![];
         std::mem::swap(&mut self.to_execute, &mut new);
         new

@@ -1,5 +1,5 @@
 /// event.rs - manages editing events and provides tools for error handling
-use crate::{document::Cursor, utils::Loc, Document};
+use crate::{Document, document::Cursor, utils::Loc};
 use error_set::error_set;
 use ropey::Rope;
 
@@ -25,40 +25,40 @@ pub enum Event {
 impl Event {
     /// Given an event, provide the opposite of that event (for purposes of undoing)
     #[must_use]
-    pub fn reverse(self) -> Event {
+    pub fn reverse(self) -> Self {
         match self {
-            Event::Insert(loc, ch) => Event::Delete(loc, ch),
-            Event::Delete(loc, ch) => Event::Insert(loc, ch),
-            Event::InsertLine(loc, st) => Event::DeleteLine(loc, st),
-            Event::DeleteLine(loc, st) => Event::InsertLine(loc, st),
-            Event::SplitDown(loc) => Event::SpliceUp(loc),
-            Event::SpliceUp(loc) => Event::SplitDown(loc),
+            Self::Insert(loc, ch) => Self::Delete(loc, ch),
+            Self::Delete(loc, ch) => Self::Insert(loc, ch),
+            Self::InsertLine(loc, st) => Self::DeleteLine(loc, st),
+            Self::DeleteLine(loc, st) => Self::InsertLine(loc, st),
+            Self::SplitDown(loc) => Self::SpliceUp(loc),
+            Self::SpliceUp(loc) => Self::SplitDown(loc),
         }
     }
 
     /// Get the location of an event
     #[must_use]
-    pub fn loc(&self) -> Loc {
+    pub const fn loc(&self) -> Loc {
         match self {
-            Event::Insert(loc, _)
-            | Event::Delete(loc, _)
-            | Event::SplitDown(loc)
-            | Event::SpliceUp(loc) => *loc,
-            Event::InsertLine(loc, _) | Event::DeleteLine(loc, _) => Loc { x: 0, y: *loc },
+            Self::Insert(loc, _)
+            | Self::Delete(loc, _)
+            | Self::SplitDown(loc)
+            | Self::SpliceUp(loc) => *loc,
+            Self::InsertLine(loc, _) | Self::DeleteLine(loc, _) => Loc { x: 0, y: *loc },
         }
     }
 
     /// Work out if the event is of the same type
     #[must_use]
-    pub fn same_type(&self, ev: &Self) -> bool {
+    pub const fn same_type(&self, ev: &Self) -> bool {
         matches!(
             (self, ev),
-            (&Event::Insert(_, _), &Event::Insert(_, _))
-                | (&Event::Delete(_, _), &Event::Delete(_, _))
-                | (&Event::InsertLine(_, _), &Event::InsertLine(_, _))
-                | (&Event::DeleteLine(_, _), &Event::DeleteLine(_, _))
-                | (&Event::SplitDown(_), &Event::SplitDown(_))
-                | (&Event::SpliceUp(_), &Event::SpliceUp(_))
+            (&Self::Insert(_, _), &Self::Insert(_, _))
+                | (&Self::Delete(_, _), &Self::Delete(_, _))
+                | (&Self::InsertLine(_, _), &Self::InsertLine(_, _))
+                | (&Self::DeleteLine(_, _), &Self::DeleteLine(_, _))
+                | (&Self::SplitDown(_), &Self::SplitDown(_))
+                | (&Self::SpliceUp(_), &Self::SpliceUp(_))
         )
     }
 }
